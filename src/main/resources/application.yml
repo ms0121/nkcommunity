@@ -18,8 +18,13 @@ spring:
 
 # mybatis相关
 mybatis:
-  mapperLocations: classpath:mappers/*.xml
-  typeAliasesPackage: com.liu.nkcommunity.domain
+  #标注待解析的mapper的xml文件位置
+  mapper-locations: classpath:mappers/*.xml
+  #标注实体类位置
+  type-aliases-package: com.liu.nkcommunity.domain
+  configuration:
+    map-underscore-to-camel-case: true
+
 
 # 打印日记信息
 logging:
