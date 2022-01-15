@@ -9,6 +9,22 @@ spring:
   thymeleaf:
     cache: false
 
+  #配置邮箱，该邮箱用于当作系统的服务端邮箱，帮我们实现邮箱的转发功能
+  # MailProperties
+  mail:
+    host: smtp.sina.com
+    port: 465
+    username: lms0121@sina.com
+    password: 9ddf4b40d7d10d59
+    # 目的就是保证发送邮件的安全性得到保障
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+
+
 # 数据库相关
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -24,6 +40,8 @@ mybatis:
   type-aliases-package: com.liu.nkcommunity.domain
   configuration:
     map-underscore-to-camel-case: true
+    # 插入数据之后，会自动的将生成的id回填到用户的id属性中
+    use-generated-keys: true
 
 
 # 打印日记信息
@@ -31,6 +49,8 @@ logging:
   level:
     com.liu.nkcommunity.mapper: DEBUG
 
-
-
+#社区域名
+community:
+  path:
+    domain: http://localhost:8080
 
