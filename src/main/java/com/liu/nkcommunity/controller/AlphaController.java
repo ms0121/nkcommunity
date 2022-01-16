@@ -1,17 +1,22 @@
 package com.liu.nkcommunity.controller;
 
-import ch.qos.logback.core.pattern.ConverterUtil;
+import com.liu.nkcommunity.util.CommunityUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
 
+/**
+ * 演示demo
+ */
 @Controller
 @RequestMapping("alpha")
 public class AlphaController {
@@ -64,7 +69,7 @@ public class AlphaController {
     @ResponseBody
     public void demo1(
             @RequestParam(value = "name", required = false, defaultValue = "zhangsan") String name,
-            @RequestParam(value = "age", required = false, defaultValue = "20") Integer age){
+            @RequestParam(value = "age", required = false, defaultValue = "20") Integer age) {
         System.out.println("name = " + name);
         System.out.println("age = " + age);
     }
@@ -73,7 +78,7 @@ public class AlphaController {
     // stu2/30
     @GetMapping("stu2/{id}")
     @ResponseBody
-    public void demo2(@PathVariable("id") Integer id){
+    public void demo2(@PathVariable("id") Integer id) {
         System.out.println("id = " + id);
     }
 
@@ -81,7 +86,7 @@ public class AlphaController {
     // 处理post请求
     @PostMapping("login")
     @ResponseBody
-    public String login(String name, String pwd){
+    public String login(String name, String pwd) {
         System.out.println("name = " + name);
         System.out.println("pwd = " + pwd);
         return "login success!";
@@ -90,7 +95,7 @@ public class AlphaController {
 
     // 处理html页面
     @GetMapping("logout")
-    public ModelAndView logout(){
+    public ModelAndView logout() {
         ModelAndView model = new ModelAndView();
         model.addObject("name", "zhangsan");
         model.addObject("age", 30);
@@ -101,12 +106,74 @@ public class AlphaController {
 
     // 处理html页面2
     @GetMapping("logout2")
-    public String logout2(Model model){
+    public String logout2(Model model) {
         model.addAttribute("name", "zhangsan");
         model.addAttribute("age", 30);
         // 设置跳转的视图
         return "logout";
     }
+
+
+    // cookie的设置以及获取
+
+    @GetMapping("cookie/set")
+    @ResponseBody
+    public String setCookie(HttpServletResponse response){
+        // 创建cookie
+        Cookie cookie = new Cookie("code", CommunityUtil.generateUUID());
+        // 设置cookie的作用范围路径(表示访问该路径才会携带该cookie值)
+        cookie.setPath("cookie/get");
+        // 设置cookie的有效时间
+        cookie.setMaxAge(60 * 10);
+        // 将cookie设置在响应中带回给浏览器
+        response.addCookie(cookie);
+        return "cookie set";
+    }
+
+    /**
+     * 浏览器每次像服务器发起请求的时候，都会携带cookie发送给服务器
+     * @param code: @CookieValue获取指定key的cookie值
+     * @return
+     */
+    @GetMapping("cookie/get")
+    @ResponseBody
+    public String getCookie(@CookieValue("code") String code){
+        System.out.println("code = " + code);
+        return "cookie get";
+    }
+
+
+    /**
+     * 设置session（session数据会存放在服务器里面，sessionId会设置在cookie中并返回给浏览器
+     * 下次浏览器进行访问的时候，会携带cookie将sessionid发送到服务器中，进行查询）
+     * @param session
+     * @return
+     */
+    @GetMapping("session/set")
+    @ResponseBody
+    public String setSession(HttpSession session){
+        session.setAttribute("id", "1001");
+        session.setAttribute("name", "zhangsan");
+        return "session set";
+    }
+
+
+    /**
+     * session的获取
+     * @param session
+     * @return
+     */
+    @GetMapping("session/get")
+    @ResponseBody
+    public String getSession(HttpSession session){
+        System.out.println("session.getAttribute(\"id\") = " + session.getAttribute("id"));
+        System.out.println("session.getAttribute(\"name\") = " + session.getAttribute("name"));
+        return "session get";
+    }
+
+
+
+
 
 
 
