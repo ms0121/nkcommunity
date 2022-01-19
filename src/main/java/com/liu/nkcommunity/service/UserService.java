@@ -1,5 +1,6 @@
 package com.liu.nkcommunity.service;
 
+import com.liu.nkcommunity.domain.LoginTicket;
 import com.liu.nkcommunity.domain.User;
 
 import java.util.Map;
@@ -15,4 +16,6 @@ public interface UserService {
     Map<String, Object> login(String username, String password, int expiredSeconds);
 
     public void logout(String ticket);
+
+    LoginTicket findLoginTicket(String ticket);
 }
