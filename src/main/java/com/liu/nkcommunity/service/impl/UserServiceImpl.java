@@ -1,6 +1,8 @@
 package com.liu.nkcommunity.service.impl;
 
+import com.liu.nkcommunity.domain.LoginTicket;
 import com.liu.nkcommunity.domain.User;
+import com.liu.nkcommunity.mapper.LoginTicketMapper;
 import com.liu.nkcommunity.mapper.UserMapper;
 import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityConstant;
@@ -41,6 +43,9 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
 
     @Override
@@ -128,6 +133,58 @@ public class UserServiceImpl implements UserService, CommunityConstant {
             return ACTIVATION_FAILURE;
         }
     }
+
+    /**
+     * 实现登录的逻辑判断
+     * @param username
+     * @param password
+     * @param expiredSeconds
+     * @return
+     */
+    @Override
+    public Map<String, Object> login(String username, String password, int expiredSeconds) {
+        Map<String, Object> map = new HashMap<>();
+        if (StringUtils.isBlank(username)){
+            map.put("usernameMsg", "用户名不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(password)){
+            map.put("passwordMsg", "密码不能为空!");
+            return map;
+        }
+        // 判断用户是否存在
+        User user = userMapper.selectByName(username);
+        if (user == null){
+            map.put("usernameMsg", "用户不存在!");
+            return map;
+        }
+        // 对密码进行加密处理
+        password = CommunityUtil.md5(password + user.getSalt());
+        if (!password.equals(user.getPassword())){
+            map.put("passwordMsg", "密码不正确!");
+            return map;
+        }
+        // 生成用户的凭证信息
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+        map.put("ticket", loginTicket.getTicket());
+        return map;
+    }
+
+    /**
+     * 实现退出登录的操作
+     * @param ticket 根据用户ticket进行退出操作
+     */
+    @Override
+    public void logout(String ticket){
+        // 修改凭证为无效
+        loginTicketMapper.updateLoginTicket(ticket, 1);
+    }
+
 
 
 }
