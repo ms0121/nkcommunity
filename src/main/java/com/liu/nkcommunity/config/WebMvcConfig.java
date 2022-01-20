@@ -1,5 +1,6 @@
 package com.liu.nkcommunity.config;
 
+import com.liu.nkcommunity.interceptor.LoginRequiredInterceptor;
 import com.liu.nkcommunity.interceptor.LoginTicketInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -13,13 +14,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private LoginTicketInterceptor loginTicketInterceptor;
 
+    @Autowired
+    private LoginRequiredInterceptor loginRequiredInterceptor;
+
     /**
      * @param registry 用于配置拦截器和设置拦截的路径
+     *          如果有多个拦截器，就要配置拦截器链
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginTicketInterceptor)
                 // static下的所有静态资源都不进行拦截
                 .excludePathPatterns("/**/*.css","/**/*.js","/**/*.png","/**/*.jpg","/**/*.jpeg");
+
+        registry.addInterceptor(loginRequiredInterceptor)
+                .excludePathPatterns("/**/*.css","/**/*.js","/**/*.png","/**/*.jpg","/**/*.jpeg");
+
     }
 }
