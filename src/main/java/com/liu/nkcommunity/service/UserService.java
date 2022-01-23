@@ -15,9 +15,11 @@ public interface UserService {
 
     Map<String, Object> login(String username, String password, int expiredSeconds);
 
-    public void logout(String ticket);
+    void logout(String ticket);
 
     LoginTicket findLoginTicket(String ticket);
 
     void updateHeader(int userId, String headerUrl);
+
+    int updatePassword(int id, String password);
 }

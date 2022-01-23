@@ -207,5 +207,19 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         userMapper.updateHeader(userId, headerUrl);
     }
 
+    /**
+     * 修改指定用户的密码
+     * @param id
+     * @param password
+     * @return
+     */
+    @Override
+    public int updatePassword(int id, String password) {
+        // 生成随机盐
+        User user = userMapper.selectById(id);
+        String pwd = CommunityUtil.md5(password + user.getSalt());
+        int i = userMapper.updatePassword(user.getId(), pwd);
+        return i;
+    }
 
 }

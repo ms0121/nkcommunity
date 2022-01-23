@@ -20,6 +20,14 @@ public class LoginRequiredInterceptor implements HandlerInterceptor {
     @Autowired
     private HostHolder hostHolder;
 
+    /**
+     * 拦截所有需要登录后才可以进行操作的请求代码
+     * @param request
+     * @param response
+     * @param handler
+     * @return
+     * @throws Exception
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 表示拦截的到是方法，才会执行判断

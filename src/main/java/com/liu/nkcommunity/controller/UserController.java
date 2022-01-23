@@ -5,6 +5,7 @@ import com.liu.nkcommunity.domain.User;
 import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
+import com.mysql.cj.x.protobuf.Mysqlx;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
@@ -126,6 +124,56 @@ public class UserController {
             LOGGER.error("读取文件失败: " + e.getMessage());
         }
     }
+
+
+    /**
+     * 更新用户的登录密码
+     * @param oldPwd
+     * @param newPwd
+     * @param againPwd
+     * @param model
+     * @param ticket
+     * @return
+     */
+    @LoginAnnotation
+    @PostMapping("updatePwd")
+    public String updatePwd(String oldPwd, String newPwd, String againPwd, Model model, @CookieValue("ticket") String ticket){
+        if (StringUtils.isBlank(oldPwd)){
+            model.addAttribute("passwordMsg", "请输入原密码！");
+            return "site/setting";
+        }
+        if (StringUtils.isBlank(newPwd)){
+            model.addAttribute("newPasswordMsg", "请输入新密码！");
+            return "site/setting";
+        }
+        if (StringUtils.isBlank(againPwd)){
+            model.addAttribute("againPasswordMsg", "请输入确认密码！");
+            return "site/setting";
+        }
+        User user = hostHolder.getUser();
+        if (!user.getPassword().equals(CommunityUtil.md5(oldPwd + user.getSalt()))){
+            model.addAttribute("passwordMsg", "原密码不正确，请重新输入！");
+            return "site/setting";
+        }
+        if (!newPwd.equals(againPwd)){
+            model.addAttribute("againPasswordMsg", "两次密码不相同，请重新输入！");
+            return "site/setting";
+        }
+        // 更新密码
+        userService.updatePassword(user.getId(), newPwd);
+        // 退出登录
+        userService.logout(ticket);
+        // 退出后重定向到登陆页面
+        return "redirect:/login";
+    }
+
+
+
+
+
+
+
+
 
 
 }
