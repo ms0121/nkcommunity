@@ -10,4 +10,6 @@ public interface LoginTicketMapper {
 
     LoginTicket selectByTicket(String ticket);
 
+
+
 }

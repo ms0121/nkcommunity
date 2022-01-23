@@ -10,4 +10,9 @@ public interface DiscussPostService {
 
     int selectDiscussPostRows(int userId);
 
+    // 发表新的讨论贴
+    int insertDiscussPost(DiscussPost discussPost);
+
+    // 查询帖子的详情信息
+    DiscussPost findDiscussPostById(int id);
 }

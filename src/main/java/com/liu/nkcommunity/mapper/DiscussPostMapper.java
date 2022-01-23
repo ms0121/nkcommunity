@@ -15,5 +15,10 @@ public interface DiscussPostMapper {
     // 如果当前的方法只有一个参数，并且使用在动态的sql <if>语句当中，则必须使用 @Param添加别名，否则会报错
     int selectDiscussPostRows(@Param("userId") int userId);
 
+    // 发表新的讨论贴
+    int insertDiscussPost(DiscussPost discussPost);
+
+    // 查询帖子的详情信息
+    DiscussPost findDiscussPostById(int id);
 
 }

@@ -118,7 +118,7 @@ public class AlphaController {
 
     @GetMapping("cookie/set")
     @ResponseBody
-    public String setCookie(HttpServletResponse response){
+    public String setCookie(HttpServletResponse response) {
         // 创建cookie
         Cookie cookie = new Cookie("code", CommunityUtil.generateUUID());
         // 设置cookie的作用范围路径(表示访问该路径才会携带该cookie值)
@@ -132,12 +132,13 @@ public class AlphaController {
 
     /**
      * 浏览器每次像服务器发起请求的时候，都会携带cookie发送给服务器
+     *
      * @param code: @CookieValue获取指定key的cookie值
      * @return
      */
     @GetMapping("cookie/get")
     @ResponseBody
-    public String getCookie(@CookieValue("code") String code){
+    public String getCookie(@CookieValue("code") String code) {
         System.out.println("code = " + code);
         return "cookie get";
     }
@@ -146,12 +147,13 @@ public class AlphaController {
     /**
      * 设置session（session数据会存放在服务器里面，sessionId会设置在cookie中并返回给浏览器
      * 下次浏览器进行访问的时候，会携带cookie将sessionid发送到服务器中，进行查询）
+     *
      * @param session
      * @return
      */
     @GetMapping("session/set")
     @ResponseBody
-    public String setSession(HttpSession session){
+    public String setSession(HttpSession session) {
         session.setAttribute("id", "1001");
         session.setAttribute("name", "zhangsan");
         return "session set";
@@ -160,27 +162,26 @@ public class AlphaController {
 
     /**
      * session的获取
+     *
      * @param session
      * @return
      */
     @GetMapping("session/get")
     @ResponseBody
-    public String getSession(HttpSession session){
+    public String getSession(HttpSession session) {
         System.out.println("session.getAttribute(\"id\") = " + session.getAttribute("id"));
         System.out.println("session.getAttribute(\"name\") = " + session.getAttribute("name"));
         return "session get";
     }
 
 
-
-
-
-
-
-
-
-
-
+    @GetMapping("ajax")
+    @ResponseBody
+    public String testAjax(String name, int age) {
+        System.out.println("name = " + name);
+        System.out.println("age = " + age);
+        return CommunityUtil.getJSONString(0, "成功");
+    }
 
 
 }
