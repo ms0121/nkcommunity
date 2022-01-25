@@ -5,7 +5,6 @@ import com.liu.nkcommunity.domain.User;
 import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
-import com.mysql.cj.x.protobuf.Mysqlx;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +15,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,7 +42,11 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // 跳转至设置页面
+    /**
+     * 跳转至设置页面
+     *
+     * @return
+     */
     @LoginAnnotation
     @GetMapping("setting")
     public String getSettingPage() {
@@ -54,6 +55,7 @@ public class UserController {
 
     /**
      * 上传头像
+     *
      * @param headerImage 上传的头像文件名
      * @param model
      * @return
@@ -113,8 +115,7 @@ public class UserController {
                 // 获取响应输出流
                 OutputStream os = response.getOutputStream();
                 // 输入流获取图像信息
-                FileInputStream fis = new FileInputStream(fileName);)
-        {
+                FileInputStream fis = new FileInputStream(fileName);) {
             byte[] buffer = new byte[1024];
             int len = 0;
             while ((len = fis.read(buffer)) != -1) {
@@ -128,6 +129,7 @@ public class UserController {
 
     /**
      * 更新用户的登录密码
+     *
      * @param oldPwd
      * @param newPwd
      * @param againPwd
@@ -137,25 +139,25 @@ public class UserController {
      */
     @LoginAnnotation
     @PostMapping("updatePwd")
-    public String updatePwd(String oldPwd, String newPwd, String againPwd, Model model, @CookieValue("ticket") String ticket){
-        if (StringUtils.isBlank(oldPwd)){
+    public String updatePwd(String oldPwd, String newPwd, String againPwd, Model model, @CookieValue("ticket") String ticket) {
+        if (StringUtils.isBlank(oldPwd)) {
             model.addAttribute("passwordMsg", "请输入原密码！");
             return "site/setting";
         }
-        if (StringUtils.isBlank(newPwd)){
+        if (StringUtils.isBlank(newPwd)) {
             model.addAttribute("newPasswordMsg", "请输入新密码！");
             return "site/setting";
         }
-        if (StringUtils.isBlank(againPwd)){
+        if (StringUtils.isBlank(againPwd)) {
             model.addAttribute("againPasswordMsg", "请输入确认密码！");
             return "site/setting";
         }
         User user = hostHolder.getUser();
-        if (!user.getPassword().equals(CommunityUtil.md5(oldPwd + user.getSalt()))){
+        if (!user.getPassword().equals(CommunityUtil.md5(oldPwd + user.getSalt()))) {
             model.addAttribute("passwordMsg", "原密码不正确，请重新输入！");
             return "site/setting";
         }
-        if (!newPwd.equals(againPwd)){
+        if (!newPwd.equals(againPwd)) {
             model.addAttribute("againPasswordMsg", "两次密码不相同，请重新输入！");
             return "site/setting";
         }
@@ -166,14 +168,6 @@ public class UserController {
         // 退出后重定向到登陆页面
         return "redirect:/login";
     }
-
-
-
-
-
-
-
-
 
 
 }

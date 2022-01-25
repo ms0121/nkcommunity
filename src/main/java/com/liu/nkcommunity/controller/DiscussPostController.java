@@ -26,6 +26,12 @@ public class DiscussPostController {
     @Autowired
     private UserService userService;
 
+    /**
+     * 发布新的帖子
+     * @param title 帖子title
+     * @param content 帖子内容
+     * @return
+     */
     @PostMapping("add")
     @ResponseBody
     public String addDiscussPost(String title, String content){
@@ -44,6 +50,12 @@ public class DiscussPostController {
     }
 
 
+    /**
+     * 查询具体的帖子的详情信息
+     * @param discussId 帖子的id
+     * @param model
+     * @return
+     */
     @GetMapping("detail/{discussId}")
     public String findDiscussPost(@PathVariable("discussId") int discussId, Model model){
         // 查询帖子

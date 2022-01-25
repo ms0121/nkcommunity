@@ -35,6 +35,7 @@ public class LoginRequiredInterceptor implements HandlerInterceptor {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             // 获取方法对象，并且获取指定方法对象上的注解
             Method method = handlerMethod.getMethod();
+            // 获取方法上指定的注册信息
             LoginAnnotation loginAnnotation = method.getAnnotation(LoginAnnotation.class);
             if (loginAnnotation != null && hostHolder.getUser() == null){
                 // 请求该方法时未登录，直接跳转到登录页面，然后禁止往下执行

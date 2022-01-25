@@ -25,13 +25,18 @@ public class HomeController {
     @Autowired
     private UserService userService;
 
+    /**
+     * 跳转到首页
+     * @param model
+     * @param page
+     * @return
+     */
     @RequestMapping({"index","/"})
     public String getIndexPage(Model model, Page page){
         // 获取总记录数
         page.setRows(discussPostService.selectDiscussPostRows(0));
         // 设置访问路径
         page.setPath("/index");
-
         // 查询所有的讨论贴
         List<DiscussPost> discussPostList = discussPostService.selectDiscussPosts(0, page.getOffset(), page.getLimit());
         List<Map<String, Object>> discussPosts = new ArrayList<>();
@@ -39,7 +44,7 @@ public class HomeController {
         if (discussPostList != null){
             for (DiscussPost discussPost : discussPostList) {
                 HashMap<String, Object> map = new HashMap<>();
-                User user = userService.selectById(Integer.valueOf(discussPost.getUserId()));
+                User user = userService.selectById(discussPost.getUserId());
                 map.put("post", discussPost);
                 map.put("user", user);
                 discussPosts.add(map);

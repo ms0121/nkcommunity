@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.liu.nkcommunity.mapper.CommentMapper">
+
+    <sql id="selectFields">
+        id,user_id,entity_type,entity_id,target_id,content,status,create_time
+    </sql>
+
+    <!-- 查询所有的评论信息   -->
+    <select id="selectCommentsByEntity" resultType="com.liu.nkcommunity.domain.Comment">
+        select
+        <include refid="selectFields"></include>
+        from comment
+        where status = 0
+        and entity_type=#{entityType}
+        and entity_id=#{entityId}
+        order by create_time asc
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--  查询指定类型和目标的评论数量  -->
+    <select id="selectCountByEntity" resultType="int">
+        select count(*)
+        from comment
+        where status=0
+        and entity_type=#{entityType}
+        and entity_id=#{entityId}
+    </select>
+
+</mapper>

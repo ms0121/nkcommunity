@@ -2,9 +2,7 @@ package com.liu.nkcommunity.controller;
 
 import com.google.code.kaptcha.Producer;
 import com.liu.nkcommunity.domain.User;
-import com.liu.nkcommunity.mapper.LoginTicketMapper;
 import com.liu.nkcommunity.service.UserService;
-import com.liu.nkcommunity.service.impl.UserServiceImpl;
 import com.liu.nkcommunity.util.CommunityConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,19 +39,33 @@ public class LoginController implements CommunityConstant {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
+    /**
+     * 注册页
+     *
+     * @return
+     */
     @GetMapping("register")
     public String getRegisterPage() {
         return "site/register";
     }
 
 
-    // 跳转登录页面
+    /**
+     * 跳转至登录页面
+     *
+     * @return
+     */
     @GetMapping("login")
     public String getLoginPage() {
         return "site/login";
     }
 
-    // 生成验证码的接口
+    /**
+     * 生成验证码的接口
+     *
+     * @param response
+     * @param session
+     */
     @GetMapping("kaptcha")
     public void generateImage(HttpServletResponse response, HttpSession session) {
         // 生成随机数，并生成图片（保存到session中）
@@ -77,7 +89,13 @@ public class LoginController implements CommunityConstant {
     }
 
 
-    // 注册页面
+    /**
+     * 注册页面
+     *
+     * @param model
+     * @param user
+     * @return
+     */
     @PostMapping("register")
     public String register(Model model, User user) {
         Map<String, Object> map = userService.register(user);
@@ -95,13 +113,17 @@ public class LoginController implements CommunityConstant {
         }
     }
 
-
+    /**
+     * 激活新注册用户
+     *
+     * @param model
+     * @param userId
+     * @param code
+     * @return
+     */
     // http://localhost:8080/community/activation/用户id/激活码
     @GetMapping("activation/{userId}/{code}")
-    public String activation(
-            Model model,
-            @PathVariable("userId") int userId,
-            @PathVariable("code") String code) {
+    public String activation(Model model, @PathVariable("userId") int userId, @PathVariable("code") String code) {
         int result = userService.activation(userId, code);
         if (result == ACTIVATION_SUCCESS) {
             // 激活成功，并跳转到登录页面
@@ -144,7 +166,7 @@ public class LoginController implements CommunityConstant {
         // 验证信息
         Map<String, Object> map = userService.login(username, password, expiredSeconds);
         // 判断是否登录成功
-        if (map.containsKey("ticket")){
+        if (map.containsKey("ticket")) {
             // 设置cookie,作用的路径，有效时间
             Cookie cookie = new Cookie("ticket", map.get("ticket").toString());
             cookie.setPath(contextPath);
@@ -152,7 +174,7 @@ public class LoginController implements CommunityConstant {
             response.addCookie(cookie);
             // 重定向到首页
             return "redirect:/index";
-        }else {
+        } else {
             model.addAttribute("usernameMsg", map.get("usernameMsg"));
             model.addAttribute("passwordMsg", map.get("passwordMsg"));
             return "site/login";
@@ -161,16 +183,16 @@ public class LoginController implements CommunityConstant {
 
     /**
      * 直接从cookie里面获取指定的cookie值
+     *
      * @param ticket
      * @return
      */
     @GetMapping("logout")
-    public String logout(@CookieValue("ticket") String ticket){
+    public String logout(@CookieValue("ticket") String ticket) {
         userService.logout(ticket);
         // 退出后重定向到登陆页面
         return "redirect:/index";
     }
-
 
 
 }
