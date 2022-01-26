@@ -10,4 +10,8 @@ public interface CommentService {
 
     // 查询所有的评论数量
     int selectCountByEntity(int entityType, int entityId);
+
+    // 添加评论
+    int addComment(Comment comment);
+
 }

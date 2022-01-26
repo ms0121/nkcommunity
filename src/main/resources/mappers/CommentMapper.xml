@@ -8,6 +8,10 @@
         id,user_id,entity_type,entity_id,target_id,content,status,create_time
     </sql>
 
+    <sql id="insertFields">
+        user_id,entity_type,entity_id,target_id,content,status,create_time
+    </sql>
+
     <!-- 查询所有的评论信息   -->
     <select id="selectCommentsByEntity" resultType="com.liu.nkcommunity.domain.Comment">
         select
@@ -28,5 +32,12 @@
         and entity_type=#{entityType}
         and entity_id=#{entityId}
     </select>
+
+    <!-- 插入评论   -->
+    <insert id="insertComment">
+        insert into comment(<include refid="insertFields"></include>)
+        values(#{userId},#{entityType},#{entityId},#{targetId},#{content},#{status},#{createTime})
+
+    </insert>
 
 </mapper>

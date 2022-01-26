@@ -5,7 +5,7 @@ import java.util.Date;
 public class Comment {
     private int id;
     private int userId;
-       // 当前评论数据针对的内容类型， 1 对于帖子的评论  2 对评论的评论 .....
+    // 当前评论数据针对的内容类型， 1 对于帖子的评论  2 对评论的评论 .....
     private int entityType;
     // 表示针对的具体的是哪个帖子的评论
     private int entityId;
