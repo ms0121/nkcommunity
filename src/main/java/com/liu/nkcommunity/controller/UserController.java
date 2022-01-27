@@ -168,8 +168,6 @@ public class UserController {
         // 退出后重定向到登陆页面
         return "redirect:/login";
     }
-
-
 }
 
 
