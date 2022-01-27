@@ -5,18 +5,26 @@ import com.liu.nkcommunity.domain.Page;
 import com.liu.nkcommunity.domain.User;
 import com.liu.nkcommunity.service.MessageService;
 import com.liu.nkcommunity.service.UserService;
+import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+/**
+ * 发送私信：
+ *  - 采用异步的方式发送私信
+ *  - 发送成功后刷新私信列表
+ *
+ * 设置已读：
+ *  - 访问私信详情时：将显示的私信状态设置为已读状态
+ */
 @Controller
 public class MessageController {
 
@@ -31,16 +39,17 @@ public class MessageController {
 
     /**
      * 私信(会话)列表
+     *
      * @param model 向页面传递数据信息
-     * @param page 来源于前端页面
+     * @param page  来源于前端页面
      * @return
      */
-    @GetMapping("letter/list")
-    public String list(Model model, Page page){
+    @GetMapping("/letter/list")
+    public String list(Model model, Page page) {
         User user = hostHolder.getUser();
         // 设置分页信息(以及每次点击发生的跳转逻辑)
         page.setLimit(5);
-        page.setPath("letter/list");
+        page.setPath("/letter/list");
         // 查询当前用户的所有会话信息
         page.setRows(messageService.findConversationCount(user.getId()));
 
@@ -49,7 +58,7 @@ public class MessageController {
                 messageService.findConversations(user.getId(), page.getOffset(), page.getLimit());
         // 用于封装每个会话需要显示给前端页面的信息
         ArrayList<Map<String, Object>> conversations = new ArrayList<>();
-        if (conversationList != null){
+        if (conversationList != null) {
             // 遍历每个会话信息
             for (Message message : conversationList) {
                 Map<String, Object> map = new HashMap<>();
@@ -66,7 +75,7 @@ public class MessageController {
             }
         }
         // 将会话信息设置在model中
-        model.addAttribute("conversations",conversations);
+        model.addAttribute("conversations", conversations);
         // 查询当前用户所有的未读消息
         int letterUnreadCount = messageService.findLetterUnreadCount(user.getId(), null);
         model.addAttribute("letterUnreadCount", letterUnreadCount);
@@ -76,13 +85,14 @@ public class MessageController {
 
     /**
      * 具体某个会话的详细信息
+     *
      * @param conversationId 查询当前会话的详细会话信息
      * @param page
      * @param model
      * @return
      */
     @GetMapping("/letter/detail/{conversationId}")
-    public String getLetterDetail(@PathVariable("conversationId") String conversationId, Page page, Model model){
+    public String getLetterDetail(@PathVariable("conversationId") String conversationId, Page page, Model model) {
         // 设置分页信息
         page.setLimit(5);
         page.setPath("/letter/detail/" + conversationId);
@@ -92,7 +102,7 @@ public class MessageController {
         List<Message> letterList = messageService.findLetters(conversationId, page.getOffset(), page.getLimit());
         // 存放所有的私信和其他的数据信息
         ArrayList<Map<String, Object>> letters = new ArrayList<>();
-        if (letterList != null){
+        if (letterList != null) {
             for (Message message : letterList) {
                 HashMap<String, Object> map = new HashMap<>();
                 map.put("letter", message);
@@ -105,47 +115,78 @@ public class MessageController {
         model.addAttribute("letters", letters);
         // 查询当前会话的目标用户target
         model.addAttribute("target", getLetterTarget(conversationId));
+        // 将消息设置为已读状态
+        List<Integer> ids = getLetterIds(letterList);
+        if (!ids.isEmpty()){
+            // 修改消息状态
+            messageService.readMessage(ids);
+        }
         return "/site/letter-detail";
+    }
+
+
+    // 返回消息的id列表，将未读状态修改为已读
+    private List<Integer> getLetterIds(List<Message> letterList) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        if (letterList != null){
+            for (Message message : letterList) {
+                // 表示当前是接受消息的一方
+                if (hostHolder.getUser().getId() == message.getToId() && message.getStatus() == 0){
+                    ids.add(message.getId());
+                }
+            }
+        }
+        return ids;
     }
 
 
     /**
      * 查询消息的私信的对立方
+     *
      * @param conversationId 直接通过会话id获取会话的对立目标用户
      * @return
      */
-    public User getLetterTarget(String conversationId){
+    public User getLetterTarget(String conversationId) {
         String[] ids = conversationId.split("_");
         int ids_0 = Integer.parseInt(ids[0]);
         int ids_1 = Integer.parseInt(ids[1]);
         // 当前登录的用户id等于ids_0
-        if (hostHolder.getUser().getId() == ids_0){
+        if (hostHolder.getUser().getId() == ids_0) {
             return userService.selectById(ids_1);
-        }else {
+        } else {
             return userService.selectById(ids_0);
         }
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * 发送消息
+     *
+     * @param toName
+     * @param content
+     * @return
+     */
+    @PostMapping("/letter/send")
+    @ResponseBody
+    public String sendLetter(String toName, String content) {
+        // 通过用户名查询目标用户的id，从而进行拼接会话信息的会话id
+        User target = userService.findByName(toName);
+        if (target == null) {
+            return CommunityUtil.getJSONString(1, "目标用户不存在!");
+        }
+        Message message = new Message();
+        message.setContent(content);
+        message.setCreateTime(new Date());
+        message.setFromId(hostHolder.getUser().getId());
+        message.setToId(target.getId());
+        if (message.getFromId() < target.getId()) {
+            message.setConversationId(message.getFromId() + "_" + message.getToId());
+        } else {
+            message.setConversationId(message.getToId() + "_" + message.getFromId());
+        }
+        // 添加消息
+        messageService.addMessage(message);
+        return CommunityUtil.getJSONString(0);
+    }
 
 }

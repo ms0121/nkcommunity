@@ -8,6 +8,10 @@
         id,from_id,to_id,conversation_id,content,status,create_time
     </sql>
 
+    <sql id="insertFields">
+        from_id,to_id,conversation_id,content,status,create_time
+    </sql>
+
     <!--
         // 查询当前用户的会话列表,针对每一个会话只显示最新的一条信息
         status:2 代表删除的消息
@@ -80,4 +84,29 @@
             and conversation_id = #{conversationId}
         </if>
     </select>
+
+    <!--新增消息-->
+    <insert id="insertMessage" parameterType="com.liu.nkcommunity.domain.Message" keyProperty="true">
+        insert into message(<include refid="insertFields"></include>)
+        values(#{fromId},#{toId},#{conversationId},#{content},#{status},#{createTime})
+    </insert>
+
+    <!-- 更新消息的状态   -->
+    <update id="updateStatus">
+        update message set status = #{status}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
+
+
+
+
+
+
+
+
 </mapper>

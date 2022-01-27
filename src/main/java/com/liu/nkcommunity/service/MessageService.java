@@ -19,4 +19,10 @@ public interface MessageService {
 
     // 查询未读私信的数量
     int findLetterUnreadCount(int userId, String conversationId);
+
+    // 新增消息
+    int addMessage(Message message);
+
+    // 修改消息的状态（比如从未读状态设置为已读）
+    int readMessage(List<Integer> ids);
 }

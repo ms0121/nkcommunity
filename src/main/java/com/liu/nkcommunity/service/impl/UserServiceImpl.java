@@ -222,4 +222,14 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         return i;
     }
 
+    /**
+     * 根据用户名查询用户信息
+     * @param name
+     * @return
+     */
+    @Override
+    public User findByName(String name) {
+        return userMapper.selectByName(name);
+    }
+
 }
