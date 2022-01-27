@@ -46,11 +46,13 @@ public class DiscussPostServiceImpl implements DiscussPostService {
         return discussPostMapper.insertDiscussPost(discussPost);
     }
 
+    // 查询对应的帖子详情
     @Override
     public DiscussPost findDiscussPostById(int id) {
         return discussPostMapper.findDiscussPostById(id);
     }
 
+    // 更新帖子的评论数量
     @Override
     public int updateCommentCount(int id, int commentCount) {
         return discussPostMapper.updateCommentCount(id, commentCount);

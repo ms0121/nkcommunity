@@ -95,7 +95,7 @@ public class DiscussPostController implements CommunityConstant {
             // 将当前的每一条评论的信息，对应的用户以及该评论下的评论等信息查询进行封装在一个map中
             for (Comment comment : commentList) {
                 // 一个map就是一个评论的vo数据
-                HashMap<String, Object> commentVo = new HashMap<>();
+                Map<String, Object> commentVo = new HashMap<>();
                 // 评论
                 commentVo.put("comment", comment);
                 // 评论作者
@@ -111,7 +111,9 @@ public class DiscussPostController implements CommunityConstant {
                     for (Comment reply : replyList) {
                         // 将评论中的每一条回复进行封装成map
                         Map<String, Object> replyVo = new HashMap<>();
+                        // 回复内容
                         replyVo.put("reply", reply);
+                        // 作者
                         replyVo.put("user", userService.selectById(reply.getUserId()));
                         // 查询当前回复的目标
                         User target = reply.getTargetId() == 0 ? null : userService.selectById(reply.getTargetId());
