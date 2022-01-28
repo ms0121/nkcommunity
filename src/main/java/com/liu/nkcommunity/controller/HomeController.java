@@ -5,7 +5,9 @@ import com.liu.nkcommunity.domain.DiscussPost;
 import com.liu.nkcommunity.domain.Page;
 import com.liu.nkcommunity.domain.User;
 import com.liu.nkcommunity.service.DiscussPostService;
+import com.liu.nkcommunity.service.LikeService;
 import com.liu.nkcommunity.service.UserService;
+import com.liu.nkcommunity.util.CommunityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,13 +19,16 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-public class HomeController {
+public class HomeController implements CommunityConstant {
 
     @Autowired
     private DiscussPostService discussPostService;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LikeService likeService;
 
     /**
      * 跳转到首页
@@ -48,6 +53,10 @@ public class HomeController {
                 User user = userService.selectById(discussPost.getUserId());
                 map.put("post", discussPost);
                 map.put("user", user);
+
+                // 统计点赞的数量
+                long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, discussPost.getId());
+                map.put("likeCount", likeCount);
                 discussPosts.add(map);
             }
         }

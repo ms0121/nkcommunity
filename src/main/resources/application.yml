@@ -32,6 +32,15 @@ spring:
     username: root
     password: 123456
 
+# 配置redis
+  redis:
+    # Redis数据库索引（默认为0）
+    database: 11
+    # Redis服务器地址（）
+    host: 81.69.27.163
+    # Redis服务器连接端口
+    port: 6379
+
 # mybatis相关
 mybatis:
   #标注待解析的mapper的xml文件位置
@@ -54,3 +63,24 @@ community:
   path:
     domain: http://localhost:8080
     upload: D:/nkFile
+
+
+#配置redis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

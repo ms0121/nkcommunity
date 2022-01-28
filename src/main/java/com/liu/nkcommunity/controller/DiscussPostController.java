@@ -6,6 +6,7 @@ import com.liu.nkcommunity.domain.Page;
 import com.liu.nkcommunity.domain.User;
 import com.liu.nkcommunity.service.CommentService;
 import com.liu.nkcommunity.service.DiscussPostService;
+import com.liu.nkcommunity.service.LikeService;
 import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityConstant;
 import com.liu.nkcommunity.util.CommunityUtil;
@@ -33,19 +34,23 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private LikeService likeService;
+
     /**
      * 发布新的帖子
-     * @param title 帖子title
+     *
+     * @param title   帖子title
      * @param content 帖子内容
      * @return
      */
     @PostMapping("add")
     @ResponseBody
-    public String addDiscussPost(String title, String content){
+    public String addDiscussPost(String title, String content) {
         // 获取当前的登录用户信息
         User user = hostHolder.getUser();
-        if (user == null){
-            return CommunityUtil.getJSONString(403,"您还没有登录呢");
+        if (user == null) {
+            return CommunityUtil.getJSONString(403, "您还没有登录呢");
         }
         DiscussPost discussPost = new DiscussPost();
         discussPost.setUserId(user.getId());
@@ -59,19 +64,28 @@ public class DiscussPostController implements CommunityConstant {
 
     /**
      * 查询具体的帖子的详情信息
+     *
      * @param discussId 帖子的id
      * @param model
      * @return
      */
     @GetMapping("detail/{discussId}")
-    public String findDiscussPost(@PathVariable("discussId") int discussId, Model model, Page page){
+    public String findDiscussPost(@PathVariable("discussId") int discussId, Model model, Page page) {
         // 查询帖子
         DiscussPost discussPost = discussPostService.findDiscussPostById(discussId);
         model.addAttribute("post", discussPost);
 
-        // 查询用户的信息
+        // 查询作者
         User user = userService.selectById(discussPost.getUserId());
         model.addAttribute("user", user);
+
+        // 查询帖子的点赞信息
+        long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, discussId);
+        model.addAttribute("likeCount", likeCount);
+        // 查询当前的用户是否给帖子点赞(用户未登录直接返回0)
+        int likeStatus =
+                hostHolder.getUser() == null ? 0 : likeService.findEntityLikeStatus(user.getId(), ENTITY_TYPE_POST, discussId);
+        model.addAttribute("likeStatus", likeStatus);
 
         // 设置分页的信息
         page.setLimit(5);
@@ -91,7 +105,7 @@ public class DiscussPostController implements CommunityConstant {
         // 这是 评论vo列表
         List<Map<String, Object>> commentVoList = new ArrayList<>();
         // 遍历当前帖子下所有的评论信息
-        if (commentList != null){
+        if (commentList != null) {
             // 将当前的每一条评论的信息，对应的用户以及该评论下的评论等信息查询进行封装在一个map中
             for (Comment comment : commentList) {
                 // 一个map就是一个评论的vo数据
@@ -101,12 +115,19 @@ public class DiscussPostController implements CommunityConstant {
                 // 评论作者
                 commentVo.put("user", userService.selectById(comment.getUserId()));
 
+                //点赞数量
+                likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeCount", likeCount);
+                //点赞状态,需要判断当前用户是否登录，没有登录无法点赞
+                likeStatus = hostHolder.getUser() == null ? 0 : likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeStatus", likeStatus);
+
                 // 当前评论的回复列表
                 List<Comment> replyList =
                         commentService.selectCommentsByEntity(ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);
                 // 回复vo列表
                 ArrayList<Map<String, Object>> replyVoList = new ArrayList<>();
-                if (replyList != null){
+                if (replyList != null) {
                     // 遍历评论的每一条回复
                     for (Comment reply : replyList) {
                         // 将评论中的每一条回复进行封装成map
@@ -115,6 +136,15 @@ public class DiscussPostController implements CommunityConstant {
                         replyVo.put("reply", reply);
                         // 作者
                         replyVo.put("user", userService.selectById(reply.getUserId()));
+
+                        // 查询给回复的点赞信息
+                        //点赞数量
+                        likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeCount", likeCount);
+                        //点赞状态,需要判断当前用户是否登录，没有登录无法点赞
+                        likeStatus = hostHolder.getUser() == null ? 0 : likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeStatus", likeStatus);
+
                         // 查询当前回复的目标
                         User target = reply.getTargetId() == 0 ? null : userService.selectById(reply.getTargetId());
                         replyVo.put("target", target);
