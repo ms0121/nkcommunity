@@ -27,12 +27,13 @@ public class HomeController {
 
     /**
      * 跳转到首页
+     *
      * @param model
      * @param page
      * @return
      */
-    @RequestMapping({"index","/"})
-    public String getIndexPage(Model model, Page page){
+    @RequestMapping({"index", "/"})
+    public String getIndexPage(Model model, Page page) {
         // 获取总记录数
         page.setRows(discussPostService.selectDiscussPostRows(0));
         // 设置访问路径
@@ -41,7 +42,7 @@ public class HomeController {
         List<DiscussPost> discussPostList = discussPostService.selectDiscussPosts(0, page.getOffset(), page.getLimit());
         List<Map<String, Object>> discussPosts = new ArrayList<>();
         // 将讨论贴设置在请求域中
-        if (discussPostList != null){
+        if (discussPostList != null) {
             for (DiscussPost discussPost : discussPostList) {
                 HashMap<String, Object> map = new HashMap<>();
                 User user = userService.selectById(discussPost.getUserId());
@@ -54,6 +55,15 @@ public class HomeController {
         return "index";
     }
 
+    /**
+     * 跳转至500这个错误页面
+     *
+     * @return
+     */
+    @RequestMapping("/errorMsg")
+    public String getErrorPage() {
+        return "/error/500";
+    }
 
 
 }
