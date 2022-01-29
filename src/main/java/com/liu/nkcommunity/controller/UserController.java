@@ -2,6 +2,7 @@ package com.liu.nkcommunity.controller;
 
 import com.liu.nkcommunity.annotation.LoginAnnotation;
 import com.liu.nkcommunity.domain.User;
+import com.liu.nkcommunity.service.LikeService;
 import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
@@ -41,6 +42,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LikeService likeService;
 
     /**
      * 跳转至设置页面
@@ -167,6 +171,25 @@ public class UserController {
         userService.logout(ticket);
         // 退出后重定向到登陆页面
         return "redirect:/login";
+    }
+
+    /**
+     * 跳转到指定用户的首页
+     * @param userId
+     * @param model
+     * @return
+     */
+    @GetMapping("/profile/{userId}")
+    public String getProfilePage(@PathVariable("userId") int userId, Model model){
+        User user = userService.selectById(userId);
+        if (user == null){
+            throw new RuntimeException("该用户不存在!");
+        }
+        model.addAttribute("user", user);
+        // 查询指定userId的用户的点赞数量
+        int likeCount = likeService.findUserLikeCount(userId);
+        model.addAttribute("likeCount", likeCount);
+        return "site/profile";
     }
 }
 
