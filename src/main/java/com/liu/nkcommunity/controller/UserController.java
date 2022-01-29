@@ -2,8 +2,10 @@ package com.liu.nkcommunity.controller;
 
 import com.liu.nkcommunity.annotation.LoginAnnotation;
 import com.liu.nkcommunity.domain.User;
+import com.liu.nkcommunity.service.FollowService;
 import com.liu.nkcommunity.service.LikeService;
 import com.liu.nkcommunity.service.UserService;
+import com.liu.nkcommunity.util.CommunityConstant;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +26,7 @@ import java.io.OutputStream;
 
 @Controller
 @RequestMapping("user")
-public class UserController {
+public class UserController implements CommunityConstant {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
@@ -45,6 +47,9 @@ public class UserController {
 
     @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
 
     /**
      * 跳转至设置页面
@@ -175,7 +180,7 @@ public class UserController {
 
     /**
      * 跳转到指定用户的首页
-     * @param userId
+     * @param userId 被查询详情的用户id
      * @param model
      * @return
      */
@@ -189,6 +194,20 @@ public class UserController {
         // 查询指定userId的用户的点赞数量
         int likeCount = likeService.findUserLikeCount(userId);
         model.addAttribute("likeCount", likeCount);
+
+        // 查询某个实体类型(用户)的关注量(当前只有编写了用户实体类型类的关注量)
+        long followeeCount = followService.findFolloweeCount(userId, ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount", followeeCount);
+        // 查询某个实体类型(用户)的粉丝数量(查询指定用户实体的粉丝数量)
+        long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
+        model.addAttribute("followerCount", followerCount);
+
+        // 判断当前登录用户是否已经关注了该实体(被查询详情的用户)
+        boolean hasFollowed = false;
+        if (hostHolder.getUser() != null){
+            hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
+        }
+        model.addAttribute("hasFollowed", hasFollowed);
         return "site/profile";
     }
 }
