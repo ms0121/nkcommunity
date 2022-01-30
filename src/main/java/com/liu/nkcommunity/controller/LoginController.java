@@ -4,11 +4,14 @@ import com.google.code.kaptcha.Producer;
 import com.liu.nkcommunity.domain.User;
 import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityConstant;
+import com.liu.nkcommunity.util.CommunityUtil;
+import com.liu.nkcommunity.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -24,7 +27,22 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * 优化登录模块：
+ *  使用redis存储验证码：
+ *      -验证码需要频繁的访问于刷新，的性能的要求比较高
+ *      -验证码不需要永久保存，通常在一段时间之后就会失效
+ *      -分布式部署时，存在session共享的问题
+ *
+ *  使用redis存储登录凭证：
+ *      -处理每次请求时，都要查询用户的登录凭证，访问的频率非常高
+ *
+ *  使用redis存储用户信息：
+ *      -处理每次请求的时候，都需要根据凭证去查询用户的相关信息，访问的频率非常的高
+ *
+ */
 @Controller
 public class LoginController implements CommunityConstant {
 
@@ -38,6 +56,9 @@ public class LoginController implements CommunityConstant {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 注册页
@@ -71,13 +92,27 @@ public class LoginController implements CommunityConstant {
         // 生成随机数，并生成图片（保存到session中）
         String text = kaptchaProducer.createText();
         BufferedImage image = kaptchaProducer.createImage(text);
-        // 将验证码存放到session中
-        session.setAttribute("kaptcha", text);
-        // 设置响应给浏览器的类型为图片
-        response.setContentType("image/png");
 
-        // 因为输出的是图片，所以使用字节输出流比较好
+        // 之前的做法：直接存放在session中
+        // 将验证码存放到session中
+        // session.setAttribute("kaptcha", text);
+
+        // 现在将验证码存放在redis中
+        // 获取标识当前用户的唯一凭证字符串，并将该字符串存放在cookie中
+        String kaptchaOwner = CommunityUtil.generateUUID();
+        Cookie cookie = new Cookie("kaptchaOwner", kaptchaOwner);
+        cookie.setMaxAge(60);
+        cookie.setPath(contextPath);
+        response.addCookie(cookie);
+        // 生成该用户的key
+        String kaptchaKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
+        // 将验证码存储在redis中，并设置验证码的过期时间为60秒
+        redisTemplate.opsForValue().set(kaptchaKey, text, 60, TimeUnit.SECONDS);
+
         try {
+            // 设置响应给浏览器的类型为图片
+            response.setContentType("image/png");
+            // 因为输出的是图片，所以使用字节输出流比较好
             OutputStream os = response.getOutputStream();
             // 输出到页面
             ImageIO.write(image, "png", os);
@@ -154,9 +189,20 @@ public class LoginController implements CommunityConstant {
      */
     @PostMapping("login")
     public String login(String username, String password, String code, boolean rememberme,
-                        HttpSession session, Model model, HttpServletResponse response) {
+                        HttpSession session, Model model, HttpServletResponse response,
+                        @CookieValue("kaptchaOwner") String kaptchaOwner) {
+        // 方法1：从session中获取
         // 从session中获取验证码
-        String kaptcha = (String) session.getAttribute("kaptcha");
+        // String kaptcha = (String) session.getAttribute("kaptcha");
+
+        // 方法2：从cookie中获取用户的唯一凭证
+        String kaptcha = null;
+        if (StringUtils.isNotBlank(kaptchaOwner)){
+            // 生成该用户的key
+            String kaptchaKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
+            kaptcha = (String) redisTemplate.opsForValue().get(kaptchaKey);
+        }
+
         if (StringUtils.isBlank(code) || StringUtils.isBlank(kaptcha) || !kaptcha.equalsIgnoreCase(code)) {
             model.addAttribute("codeMsg", "验证码不正确！");
             return "site/login";
