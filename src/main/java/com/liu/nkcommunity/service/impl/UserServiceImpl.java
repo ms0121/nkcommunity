@@ -2,7 +2,6 @@ package com.liu.nkcommunity.service.impl;
 
 import com.liu.nkcommunity.domain.LoginTicket;
 import com.liu.nkcommunity.domain.User;
-import com.liu.nkcommunity.mapper.LoginTicketMapper;
 import com.liu.nkcommunity.mapper.UserMapper;
 import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityConstant;
@@ -52,10 +51,46 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    /**
+     * 查询用户的接口十分的频繁，所以使用redis进行缓存用户的信息
+     * 步骤：
+     *  - 1.需要查询用户信息的时候，优先从缓存中查询
+     *  - 2.缓存中可能没有用户信息，没有就从数据库中进行查询，并把查询得到的数据更新到redis中
+     *  - 3.如果修改了用户的相关信息，也就是用户的信息发生了变化，就直接从redis中将其进行删除（更新数据的方式可能会出现并发安全的问题）
+     */
     @Override
     public User selectById(int id) {
-        return userMapper.selectById(id);
+        // return userMapper.selectById(id);
+        User user = getCache(id);
+        if (user == null){
+            user = initCache(id);
+        }
+        return user;
     }
+
+    // 1.从缓存中查询数据
+    private User getCache(int userId) {
+        // 构造用户的key
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        return (User) redisTemplate.opsForValue().get(userKey);
+    }
+
+    // 2.取不到数据，先从数据库中获取，并初始化缓存中的用户信息
+    private User initCache(int userId){
+        User user = userMapper.selectById(userId);
+        // 构造用户的key
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(userKey, user);
+        return user;
+    }
+
+    // 3.用户数据发生变化的时候，清除缓存数据信息
+    public void clearCache(int userId){
+        // 构造用户的key
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.delete(userKey);
+    }
+
 
     /**
      * 实现用户注册的功能:
@@ -132,6 +167,8 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         } else if (user.getActivationCode() == code) {
             // 更新激活的状态
             userMapper.updateStatus(userId, 1);
+            // 修改了用户信息，则删除缓存中的数据
+            clearCache(userId);
             return ACTIVATION_SUCCESS;
         } else {
             // 激活失败
@@ -211,6 +248,7 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     /**
      * 根据凭证ticket查询 LoginTicket 信息
+     *
      * @param ticket
      * @return
      */
@@ -225,16 +263,20 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     /**
      * 更新用户的头像url
+     *
      * @param userId
      * @param headerUrl
      */
     @Override
     public void updateHeader(int userId, String headerUrl) {
         userMapper.updateHeader(userId, headerUrl);
+        // 清除缓存
+        clearCache(userId);
     }
 
     /**
      * 修改指定用户的密码
+     *
      * @param id
      * @param password
      * @return
@@ -245,11 +287,14 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         User user = userMapper.selectById(id);
         String pwd = CommunityUtil.md5(password + user.getSalt());
         int i = userMapper.updatePassword(user.getId(), pwd);
+        // 清除缓存
+        clearCache(user.getId());
         return i;
     }
 
     /**
      * 根据用户名查询用户信息
+     *
      * @param name
      * @return
      */

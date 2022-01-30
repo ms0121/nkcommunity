@@ -15,6 +15,8 @@ public class RedisKeyUtil {
     private static final String PREFIX_KAPTCHA = "kaptcha";
     // 存储登录凭证信息的key
     private static final String PREFIX_TICKET = "ticket";
+    // 存储用户信息的key
+    private static final String PREFIX_USER = "user";
 
 
     /**
@@ -61,6 +63,11 @@ public class RedisKeyUtil {
     // 构造登录凭证的key（登录凭证是在用户登录的部分使用）
     public static String getTicketKey(String ticket) {
         return PREFIX_TICKET + SPLIT + ticket;
+    }
+
+    // 用户信息key
+    public static String getUserKey(int userId) {
+        return PREFIX_USER + SPLIT + userId;
     }
 
 }
