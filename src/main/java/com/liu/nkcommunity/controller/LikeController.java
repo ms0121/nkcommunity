@@ -4,10 +4,8 @@ import com.liu.nkcommunity.domain.User;
 import com.liu.nkcommunity.service.LikeService;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -24,13 +22,14 @@ public class LikeController {
 
     /**
      * 点赞
+     *
      * @param entityType
      * @param entityId
      * @return
      */
     @PostMapping("/like")
     @ResponseBody
-    public String like(int entityType, int entityId, int entityUserId){
+    public String like(int entityType, int entityId, int entityUserId) {
         User user = hostHolder.getUser();
         // 点赞
         likeService.like(user.getId(), entityType, entityId, entityUserId);
@@ -44,7 +43,6 @@ public class LikeController {
         map.put("likeStatus", likeStatus);
         return CommunityUtil.getJSONString(0, null, map);
     }
-
 
 
 }
