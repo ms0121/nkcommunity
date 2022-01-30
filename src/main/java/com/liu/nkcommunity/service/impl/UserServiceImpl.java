@@ -8,9 +8,11 @@ import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityConstant;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.MailClient;
+import com.liu.nkcommunity.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -22,6 +24,7 @@ import java.util.Random;
 
 /**
  * 下面的所有方法必须进行参数的校验工作
+ * 使用redis重构用户登录之后的凭证信息
  */
 @Service
 public class UserServiceImpl implements UserService, CommunityConstant {
@@ -43,9 +46,11 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    @Autowired
-    private LoginTicketMapper loginTicketMapper;
+//    @Autowired
+//    private LoginTicketMapper loginTicketMapper;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public User selectById(int id) {
@@ -171,7 +176,16 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         loginTicket.setTicket(CommunityUtil.generateUUID());
         loginTicket.setStatus(0);
         loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
-        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        // 方法1：之前的方法将用户登录之后的凭证信息保存到数据库
+        // loginTicketMapper.insertLoginTicket(loginTicket);
+
+        // 方法2：现在将用户登录之后生成的凭证保存到redis中
+        // 获取凭证的key
+        String ticketKey = RedisKeyUtil.getTicketKey(loginTicket.getTicket());
+        // 将凭证作为key,整个对象序列化成为json形式的数据保存到redis中
+        redisTemplate.opsForValue().set(ticketKey, loginTicket);
+
         map.put("ticket", loginTicket.getTicket());
         return map;
     }
@@ -184,7 +198,15 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     @Override
     public void logout(String ticket) {
         // 修改凭证为无效
-        loginTicketMapper.updateLoginTicket(ticket, 1);
+        // loginTicketMapper.updateLoginTicket(ticket, 1);
+
+        // 从redis中取出对应的值，修改登录的状态
+        // 获取凭证的key
+        String ticketKey = RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
+        loginTicket.setStatus(1);
+        // 覆盖原有的值
+        redisTemplate.opsForValue().set(ticketKey, loginTicket);
     }
 
     /**
@@ -194,7 +216,11 @@ public class UserServiceImpl implements UserService, CommunityConstant {
      */
     @Override
     public LoginTicket findLoginTicket(String ticket) {
-        return loginTicketMapper.selectByTicket(ticket);
+        // return loginTicketMapper.selectByTicket(ticket);
+        // 获取凭证的key
+        String ticketKey = RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
+        return loginTicket;
     }
 
     /**

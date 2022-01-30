@@ -11,8 +11,10 @@ public class RedisKeyUtil {
     private static final String PREFIX_FOLLOWEE = "followee";
     // 粉丝的key(便于统计用户的粉丝数量)
     private static final String PREFIX_FOLLOWER = "follower";
-    // 存储登录验证码信息的key
+    // 存储登录验证码的key
     private static final String PREFIX_KAPTCHA = "kaptcha";
+    // 存储登录凭证信息的key
+    private static final String PREFIX_TICKET = "ticket";
 
 
     /**
@@ -52,9 +54,13 @@ public class RedisKeyUtil {
     }
 
     // 获取登录验证码的key，给每个登录的用户一个随机的字符串作为用户的登录凭证信息
-    public static String getKaptchaKey(String owner){
+    public static String getKaptchaKey(String owner) {
         return PREFIX_KAPTCHA + SPLIT + owner;
     }
 
+    // 构造登录凭证的key（登录凭证是在用户登录的部分使用）
+    public static String getTicketKey(String ticket) {
+        return PREFIX_TICKET + SPLIT + ticket;
+    }
 
 }

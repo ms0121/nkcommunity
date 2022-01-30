@@ -31,17 +31,16 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 优化登录模块：
- *  使用redis存储验证码：
- *      -验证码需要频繁的访问于刷新，的性能的要求比较高
- *      -验证码不需要永久保存，通常在一段时间之后就会失效
- *      -分布式部署时，存在session共享的问题
- *
- *  使用redis存储登录凭证：
- *      -处理每次请求时，都要查询用户的登录凭证，访问的频率非常高
- *
- *  使用redis存储用户信息：
- *      -处理每次请求的时候，都需要根据凭证去查询用户的相关信息，访问的频率非常的高
- *
+ * 使用redis存储验证码：
+ * -验证码需要频繁的访问于刷新，的性能的要求比较高
+ * -验证码不需要永久保存，通常在一段时间之后就会失效
+ * -分布式部署时，存在session共享的问题
+ * <p>
+ * 使用redis存储登录凭证：
+ * -处理每次请求时，都要查询用户的登录凭证，访问的频率非常高
+ * <p>
+ * 使用redis存储用户信息：
+ * -处理每次请求的时候，都需要根据凭证去查询用户的相关信息，访问的频率非常的高
  */
 @Controller
 public class LoginController implements CommunityConstant {
@@ -197,7 +196,7 @@ public class LoginController implements CommunityConstant {
 
         // 方法2：从cookie中获取用户的唯一凭证
         String kaptcha = null;
-        if (StringUtils.isNotBlank(kaptchaOwner)){
+        if (StringUtils.isNotBlank(kaptchaOwner)) {
             // 生成该用户的key
             String kaptchaKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
             kaptcha = (String) redisTemplate.opsForValue().get(kaptchaKey);
