@@ -31,6 +31,10 @@ public class GlobalServiceImplLogAdvice {
         // 日记打印形式：用户 [127.0.0.1], 在【某某时间】，访问了 【具体的方法】
         // 通过连接点获取当前请求的ip地址
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        // 处理消息队列出现的异常(因为消息事件是直接通过controller进行调用的，所以需要不处理)
+        if (attributes == null){
+            return;
+        }
         // 获取用户请求
         HttpServletRequest request = attributes.getRequest();
         String ip = request.getRemoteHost();

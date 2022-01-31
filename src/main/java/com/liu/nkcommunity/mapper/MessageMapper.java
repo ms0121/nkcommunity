@@ -1,6 +1,7 @@
 package com.liu.nkcommunity.mapper;
 
 import com.liu.nkcommunity.domain.Message;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * - 查询某个会话所包含的私信
  * - 支持分页显示
  */
+@Mapper
 public interface MessageMapper {
 
     // 查询当前用户的会话列表,针对每一个会话只显示最新的一条信息

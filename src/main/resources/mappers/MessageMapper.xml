@@ -86,7 +86,7 @@
     </select>
 
     <!--新增消息-->
-    <insert id="insertMessage" parameterType="com.liu.nkcommunity.domain.Message" keyProperty="true">
+    <insert id="insertMessage" parameterType="com.liu.nkcommunity.domain.Message">
         insert into message(<include refid="insertFields"></include>)
         values(#{fromId},#{toId},#{conversationId},#{content},#{status},#{createTime})
     </insert>
@@ -99,14 +99,5 @@
             #{id}
         </foreach>
     </update>
-
-
-
-
-
-
-
-
-
 
 </mapper>

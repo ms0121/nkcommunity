@@ -1,7 +1,9 @@
 package com.liu.nkcommunity.mapper;
 
 import com.liu.nkcommunity.domain.User;
+import org.apache.ibatis.annotations.Mapper;
 
+@Mapper
 public interface UserMapper {
 
     User selectById(int id);

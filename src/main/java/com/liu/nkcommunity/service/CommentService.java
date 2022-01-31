@@ -14,4 +14,7 @@ public interface CommentService {
     // 添加评论
     int addComment(Comment comment);
 
+    // 根据id查询对应的评论
+    Comment selectCommentById(int id);
+
 }

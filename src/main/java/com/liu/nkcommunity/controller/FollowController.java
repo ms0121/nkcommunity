@@ -1,7 +1,9 @@
 package com.liu.nkcommunity.controller;
 
+import com.liu.nkcommunity.domain.Event;
 import com.liu.nkcommunity.domain.Page;
 import com.liu.nkcommunity.domain.User;
+import com.liu.nkcommunity.event.EventProducer;
 import com.liu.nkcommunity.service.FollowService;
 import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityConstant;
@@ -55,11 +57,14 @@ public class FollowController implements CommunityConstant {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     /**
      * 关注
      *
-     * @param entityType
-     * @param entityId
+     * @param entityType 目前关注的实体类型只有用户
+     * @param entityId  用户实体的id
      * @return
      */
     @PostMapping("follow")
@@ -68,6 +73,15 @@ public class FollowController implements CommunityConstant {
         User user = hostHolder.getUser();
         // 关注(目前只是实现对用户的关注，帖子，评论的关注未实现，后续再改)
         followService.follow(user.getId(), entityType, entityId);
+
+        // 触发关注事件
+        Event event = new Event()
+                .setTopic(TOPIC_FOLLOW)
+                .setUserId(user.getId())
+                .setEntityType(entityType)
+                .setEntityId(entityId)
+                .setEntityUserId(entityId);// 因为当前关注的只能是人
+        eventProducer.fireEvent(event);
         return CommunityUtil.getJSONString(0, "已关注!");
     }
 

@@ -1,10 +1,12 @@
 package com.liu.nkcommunity.mapper;
 
 import com.liu.nkcommunity.domain.DiscussPost;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface DiscussPostMapper {
 
     // 如果userId为空，表示查询所有的讨论贴，否则表示当前当前指定用户的帖子

@@ -39,4 +39,10 @@
         values(#{userId},#{entityType},#{entityId},#{targetId},#{content},#{status},#{createTime})
     </insert>
 
+    <select id="selectCommentById" resultType="com.liu.nkcommunity.domain.Comment">
+        select <include refid="selectFields"></include>
+        from comment
+        where id = #{id}
+    </select>
+
 </mapper>

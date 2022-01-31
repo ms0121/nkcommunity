@@ -1,7 +1,10 @@
 package com.liu.nkcommunity.controller;
 
+import com.liu.nkcommunity.domain.Event;
 import com.liu.nkcommunity.domain.User;
+import com.liu.nkcommunity.event.EventProducer;
 import com.liu.nkcommunity.service.LikeService;
+import com.liu.nkcommunity.util.CommunityConstant;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.HashMap;
 
 @Controller
-public class LikeController {
+public class LikeController implements CommunityConstant {
 
     @Autowired
     private LikeService likeService;
@@ -20,8 +23,11 @@ public class LikeController {
     @Autowired
     private HostHolder hostHolder;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     /**
-     * 点赞
+     * 点赞：某人给某个人的什么类型的帖子/评论点了赞
      *
      * @param entityType
      * @param entityId
@@ -29,7 +35,7 @@ public class LikeController {
      */
     @PostMapping("/like")
     @ResponseBody
-    public String like(int entityType, int entityId, int entityUserId) {
+    public String like(int entityType, int entityId, int entityUserId, int postId) {
         User user = hostHolder.getUser();
         // 点赞
         likeService.like(user.getId(), entityType, entityId, entityUserId);
@@ -41,6 +47,20 @@ public class LikeController {
         HashMap<String, Object> map = new HashMap<>();
         map.put("likeCount", likeCount);
         map.put("likeStatus", likeStatus);
+
+        // 点赞后触发消息事件
+        if (likeStatus == 1){
+            Event event = new Event()
+                    .setTopic(TOPIC_LIKE)
+                    .setUserId(hostHolder.getUser().getId())
+                    .setEntityType(entityType)
+                    .setEntityId(entityId)
+                    .setEntityUserId(entityUserId)
+                    .setData("postId", postId);
+            // 发送通知信息
+            eventProducer.fireEvent(event);
+        }
+        // 取消点赞不通知
         return CommunityUtil.getJSONString(0, null, map);
     }
 

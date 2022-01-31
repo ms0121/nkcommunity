@@ -1,6 +1,10 @@
 package com.liu.nkcommunity.controller;
 
+import com.alibaba.fastjson.JSONObject;
+import com.liu.nkcommunity.domain.Event;
+import com.liu.nkcommunity.util.CommunityConstant;
 import com.liu.nkcommunity.util.CommunityUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +23,44 @@ import java.util.Enumeration;
  */
 @Controller
 @RequestMapping("alpha")
-public class AlphaController {
+public class AlphaController implements CommunityConstant {
+
+//    @Autowired
+//    private RabbitTemplate rabbitTemplate;
 
     @RequestMapping("hello")
     @ResponseBody
     public String hello() {
         return "Hello springBoot！！！";
     }
+
+    @GetMapping("send")
+    @ResponseBody
+    public void testTopicSend() {
+        Event event = new Event();
+        event.setTopic(TOPIC_COMMENT);
+        event.setUserId(111);
+        event.setEntityId(222);
+        // rabbitTemplate.convertAndSend("topics", event.getTopic(), JSONObject.toJSONString(event));
+    }
+
+
+    //    @RabbitListener(bindings = {
+//            @QueueBinding(
+//                    value = @Queue,
+//                    exchange = @Exchange(type = "topic", name = "topics"),
+//                    key = {TOPIC_COMMENT, TOPIC_LIKE, TOPIC_FOLLOW}
+//            )
+//    })
+    public void testTopicReci(String message) {
+        if (StringUtils.isBlank(message)) {
+            return;
+        }
+        System.out.println("message = " + message);
+        Event event = JSONObject.parseObject(message, Event.class);
+        System.out.println("event = " + event);
+    }
+
 
     // http的底层数据原理
     @RequestMapping("http")

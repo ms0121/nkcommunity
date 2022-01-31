@@ -9,6 +9,21 @@ spring:
   thymeleaf:
     cache: false
 
+#  kafka
+  kafka:
+    bootstrap-servers: 81.69.27.163:9092
+    consumer:
+      group-id: test-consumer-group
+      enable-auto-commit: true
+      auto-commit-interval: 3000
+
+#  rabbitmq:
+#    host: 81.69.27.163
+#    port: 5672
+#    username: guest
+#    password: guest
+
+
   #配置邮箱，该邮箱用于当作系统的服务端邮箱，帮我们实现邮箱的转发功能
   # MailProperties
   mail:
@@ -24,6 +39,15 @@ spring:
           ssl:
             enable: true
 
+  # es
+  data:
+    elasticsearch:
+      cluster-name: my-application
+      #节点的地址，注意api模式下端口号是9300，千万不要写成9200
+      #是否开启本地存储
+      repositories:
+        enabled: false
+      cluster-nodes: 81.69.27.163:9300
 
 # 数据库相关
   datasource:
@@ -63,9 +87,6 @@ community:
   path:
     domain: http://localhost:8080
     upload: D:/nkFile
-
-
-#配置redis
 
 
 

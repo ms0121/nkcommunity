@@ -1,9 +1,11 @@
 package com.liu.nkcommunity.mapper;
 
 import com.liu.nkcommunity.domain.Comment;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
+@Mapper
 public interface CommentMapper {
 
     // 分页查询所有的评论信息
@@ -14,5 +16,8 @@ public interface CommentMapper {
 
     // 添加评论信息
     int insertComment(Comment comment);
+
+    // 根据id查询评论信息
+    Comment selectCommentById(int id);
 
 }

@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("com.liu.nkcommunity.mapper")
+//@MapperScan("com.liu.nkcommunity.mapper")
 public class NkcommunityApplication {
 
 	public static void main(String[] args) {
