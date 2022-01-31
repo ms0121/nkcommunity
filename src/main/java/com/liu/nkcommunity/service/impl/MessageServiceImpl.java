@@ -57,4 +57,22 @@ public class MessageServiceImpl implements MessageService {
     public int readMessage(List<Integer> ids) {
         return messageMapper.updateStatus(ids, 1);
     }
+
+    // 查询指定用户的某个主题下最新的通知
+    @Override
+    public Message findLatestNotice(int userId, String topic) {
+        return messageMapper.selectLatestNotice(userId, topic);
+    }
+
+    // 查询某个主题包含的通知数量
+    @Override
+    public int findNoticeCount(int userId, String topic) {
+        return messageMapper.selectNoticeCount(userId, topic);
+    }
+
+    // 查询未读的通知数量
+    @Override
+    public int findNoticeUnreadCount(int userId, String topic) {
+        return messageMapper.selectLetterUnreadCount(userId, topic);
+    }
 }
