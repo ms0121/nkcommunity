@@ -80,6 +80,5 @@ public class EventConsumer implements CommunityConstant {
         message.setContent(JSONObject.toJSONString(content));
         // 将消息添加到数据库中
         messageService.addMessage(message);
-
     }
 }

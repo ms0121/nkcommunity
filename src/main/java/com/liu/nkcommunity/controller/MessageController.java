@@ -22,11 +22,14 @@ import java.util.*;
 
 /**
  * 发送私信：
- *  - 采用异步的方式发送私信
- *  - 发送成功后刷新私信列表
- *
+ * - 采用异步的方式发送私信
+ * - 发送成功后刷新私信列表
+ * <p>
  * 设置已读：
- *  - 访问私信详情时：将显示的私信状态设置为已读状态
+ * - 访问私信详情时：将显示的私信状态设置为已读状态
+ *
+ * 还有一个总的未读消息数量需要进行显示：
+ *      因为这个未读数量在所有的请求当中都要进行显示，所以将该查询方法的请求放在拦截器中
  */
 @Controller
 public class MessageController implements CommunityConstant {
@@ -123,7 +126,7 @@ public class MessageController implements CommunityConstant {
         model.addAttribute("target", getLetterTarget(conversationId));
         // 将消息设置为已读状态
         List<Integer> ids = getLetterIds(letterList);
-        if (!ids.isEmpty()){
+        if (!ids.isEmpty()) {
             // 修改消息状态
             messageService.readMessage(ids);
         }
@@ -134,10 +137,10 @@ public class MessageController implements CommunityConstant {
     // 返回消息的id列表，将未读状态修改为已读
     private List<Integer> getLetterIds(List<Message> letterList) {
         ArrayList<Integer> ids = new ArrayList<>();
-        if (letterList != null){
+        if (letterList != null) {
             for (Message message : letterList) {
                 // 表示当前是接受消息的一方
-                if (hostHolder.getUser().getId() == message.getToId() && message.getStatus() == 0){
+                if (hostHolder.getUser().getId() == message.getToId() && message.getStatus() == 0) {
                     ids.add(message.getId());
                 }
             }
@@ -198,21 +201,21 @@ public class MessageController implements CommunityConstant {
 
     /**
      * 显示系统通知
-     *  通知列表
-     *      - 显示评论、点赞、关注三种类型的通知
-     *  通知详情
-     *      - 分页显示某一类主题所包含的通知
-     *  未读消息
-     *      - 在页面头部显示所有的未读消息数量
+     * 通知列表
+     * - 显示评论、点赞、关注三种类型的通知
+     * 通知详情
+     * - 分页显示某一类主题所包含的通知
+     * 未读消息
+     * - 在页面头部显示所有的未读消息数量
      */
     @GetMapping("notice/list")
-    public String getNoticeList(Model model){
+    public String getNoticeList(Model model) {
         User user = hostHolder.getUser();
         // 查询评论类通知
         // 最新的通知需要显示在页面中
         Message message = messageService.findLatestNotice(user.getId(), TOPIC_COMMENT);
         Map<String, Object> messageVo = new HashMap<>();
-        if (message != null){
+        if (message != null) {
             messageVo.put("message", message);
             // 将转义字符进行反转
             String content = HtmlUtils.htmlUnescape(message.getContent());
@@ -236,7 +239,7 @@ public class MessageController implements CommunityConstant {
         // 查询点赞类通知
         message = messageService.findLatestNotice(user.getId(), TOPIC_LIKE);
         messageVo = new HashMap<>();
-        if (message != null){
+        if (message != null) {
             messageVo.put("message", message);
             // 将转义字符进行反转
             String content = HtmlUtils.htmlUnescape(message.getContent());
@@ -260,7 +263,7 @@ public class MessageController implements CommunityConstant {
         // 查询关注类通知
         message = messageService.findLatestNotice(user.getId(), TOPIC_FOLLOW);
         messageVo = new HashMap<>();
-        if (message != null){
+        if (message != null) {
             messageVo.put("message", message);
             // 将转义字符进行反转
             String content = HtmlUtils.htmlUnescape(message.getContent());
@@ -287,7 +290,46 @@ public class MessageController implements CommunityConstant {
         int noticeUnreadCount = messageService.findNoticeUnreadCount(user.getId(), null);
         model.addAttribute("noticeUnreadCount", noticeUnreadCount);
 
-        return "/site/notice";
+        return "site/notice";
     }
+
+
+    @GetMapping("notice/detail/{topic}")
+    public String getNoticeDetail(@PathVariable("topic") String topic, Model model, Page page) {
+        User user = hostHolder.getUser();
+        // 设置分页信息
+        page.setLimit(5);
+        page.setPath("/notice/detail/" + topic);
+        page.setRows(messageService.findNoticeCount(user.getId(), topic));
+
+        // 查询某个主题的所有通知信息
+        List<Message> noticeList = messageService.findNotices(user.getId(), topic, page.getOffset(), page.getLimit());
+        List<Map<String, Object>> noticeVoList = new ArrayList<>();
+        if (noticeList != null) {
+            for (Message notice : noticeList) {
+                HashMap<String, Object> map = new HashMap<>();
+                // 通知
+                map.put("notice", notice);
+                // 内容
+                String content = HtmlUtils.htmlUnescape(notice.getContent());
+                HashMap data = JSONObject.parseObject(content, HashMap.class);
+                map.put("user", userService.selectById((Integer) data.get("userId")));
+                map.put("entityType", data.get("entityType"));
+                map.put("entityId", data.get("entityId"));
+                map.put("postId", data.get("postId"));
+                // 显示通知的作者()
+                map.put("fromUser", userService.selectById(notice.getFromId()));
+                noticeVoList.add(map);
+            }
+        }
+        model.addAttribute("notices", noticeVoList);
+        // 将消息设置为已读的状态
+        List<Integer> ids = getLetterIds(noticeList);
+        if (!ids.isEmpty()) {
+            messageService.readMessage(ids);
+        }
+        return "site/notice-detail";
+    }
+
 
 }
