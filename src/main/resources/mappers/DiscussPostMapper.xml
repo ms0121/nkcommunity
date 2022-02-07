@@ -36,7 +36,7 @@
     </select>
 
     <!-- 发表/添加讨论贴   -->
-    <insert id="insertDiscussPost">
+    <insert id="insertDiscussPost" parameterType="com.liu.nkcommunity.domain.DiscussPost" keyProperty="id">
         insert into discuss_post(<include refid="insertFields"></include>)
         values(#{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score})
     </insert>

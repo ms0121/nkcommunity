@@ -6,4 +6,5 @@ package com.liu.nkcommunity.mapper.repository;
  */
 //@Repository
 public interface DiscussPostRepository {
+
 }
