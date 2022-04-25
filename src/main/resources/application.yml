@@ -11,7 +11,7 @@ spring:
 
 #  kafka
   kafka:
-    bootstrap-servers: 81.69.27.163:9092
+    bootstrap-servers: 101.43.133.25:9092
     consumer:
       group-id: test-consumer-group
       enable-auto-commit: true
@@ -47,7 +47,7 @@ spring:
       #是否开启本地存储
       repositories:
         enabled: false
-      cluster-nodes: 81.69.27.163:9300
+      cluster-nodes: 101.43.133.25:9300
 
 # 数据库相关
   datasource:
@@ -61,7 +61,7 @@ spring:
     # Redis数据库索引（默认为0）
     database: 11
     # Redis服务器地址（）
-    host: 81.69.27.163
+    host: 101.43.133.25
     # Redis服务器连接端口
     port: 6379
 
@@ -87,21 +87,3 @@ community:
   path:
     domain: http://localhost:8080
     upload: D:/nkFile
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
