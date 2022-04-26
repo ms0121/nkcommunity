@@ -1,11 +1,16 @@
 package com.liu.nkcommunity.event;
 
 import com.alibaba.fastjson.JSONObject;
+import com.liu.nkcommunity.domain.DiscussPost;
 import com.liu.nkcommunity.domain.Event;
 import com.liu.nkcommunity.domain.Message;
+import com.liu.nkcommunity.mapper.DiscussPostMapper;
+import com.liu.nkcommunity.service.DiscussPostService;
 import com.liu.nkcommunity.service.MessageService;
+import com.liu.nkcommunity.service.impl.ElasticSearchServiceImpl;
 import com.liu.nkcommunity.util.CommunityConstant;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +18,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.security.PrivateKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,24 +34,22 @@ public class EventConsumer implements CommunityConstant {
     @Autowired
     private MessageService messageService;
 
-    //@Autowired
-    //  private RabbitTemplate rabbitTemplate;
-
     @Autowired
     private KafkaTemplate kafkaTemplate;
 
-    // message的形式; {"data":{},"entityId":222,"entityType":0,"entityUserId":0,"topic":"comment","userId":111}
-//    @RabbitListener(bindings = {
-//            @QueueBinding(
-//                    value = @Queue, // 使用的时主题模式，默认使用的交换机名字时 topics
-//                    exchange = @Exchange(type = "direct", value = "directs", durable = "false"), // 指定交换机名称和类型
-//                    // 只要匹配到当下的任意一个key都会触发消费的事件
-//                    key = {TOPIC_COMMENT, TOPIC_LIKE, TOPIC_FOLLOW}
-//            )
-//    })
+    @Autowired
+    private DiscussPostService discussPostService;
 
+    @Autowired
+    private ElasticSearchServiceImpl elasticSearchService;
+
+    /**
+     * 评论，点赞，关注
+     * @param record
+     */
     @KafkaListener(topics = {TOPIC_COMMENT, TOPIC_FOLLOW, TOPIC_LIKE})
-    public void handleCommentMessage(String msg) {
+    public void handleCommentMessage(ConsumerRecord record) {
+        String msg = record.value().toString();
         if (StringUtils.isBlank(msg)) {
             LOGGER.error("消息的内容为空!");
             return;
@@ -81,4 +85,30 @@ public class EventConsumer implements CommunityConstant {
         // 将消息添加到数据库中
         messageService.addMessage(message);
     }
+
+
+    /**
+     * 处理发布帖子的消息
+     * @param record
+     */
+    @KafkaListener(topics = {TOPIC_PUBLISH})
+    public void handlePublishMessage(ConsumerRecord record) {
+        String msg = record.value().toString();
+        if (StringUtils.isBlank(msg)) {
+            LOGGER.error("消息的内容为空!");
+            return;
+        }
+        Event event = JSONObject.parseObject(msg, Event.class);
+        if (event == null) {
+            LOGGER.error("消息格式错误!");
+            return;
+        }
+        // 从数据库中查询发布的帖子，然后存入到es服务器中
+        DiscussPost discussPost = discussPostService.findDiscussPostById(event.getEntityId());
+        elasticSearchService.save(discussPost);
+    }
+
+
+
+
 }

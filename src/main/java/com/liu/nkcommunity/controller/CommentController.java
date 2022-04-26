@@ -62,6 +62,19 @@ public class CommentController implements CommunityConstant {
         }
         // 发送事件
         eventProducer.fireEvent(event);
+
+        // 如果当前的评论是作用在帖子上，则触发事件
+        if (comment.getEntityType() == ENTITY_TYPE_POST) {
+            // 触发事件：将发布分帖子添加到es服务器上
+            event = new Event()
+                    .setTopic(TOPIC_PUBLISH)
+                    .setUserId(comment.getUserId())
+                    .setEntityId(discussPostId)
+                    .setEntityType(ENTITY_TYPE_POST);
+            // 将贴子发布到kafka服务器上
+            eventProducer.fireEvent(event);
+        }
+
         // 跳转到帖子的详情页面
         return "redirect:/discuss/detail/" + discussPostId;
     }

@@ -1,9 +1,7 @@
 package com.liu.nkcommunity.controller;
 
-import com.liu.nkcommunity.domain.Comment;
-import com.liu.nkcommunity.domain.DiscussPost;
-import com.liu.nkcommunity.domain.Page;
-import com.liu.nkcommunity.domain.User;
+import com.liu.nkcommunity.domain.*;
+import com.liu.nkcommunity.event.EventProducer;
 import com.liu.nkcommunity.service.CommentService;
 import com.liu.nkcommunity.service.DiscussPostService;
 import com.liu.nkcommunity.service.LikeService;
@@ -37,6 +35,9 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private LikeService likeService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     /**
      * 发布新的帖子
      *
@@ -58,6 +59,16 @@ public class DiscussPostController implements CommunityConstant {
         discussPost.setContent(content);
         discussPost.setCreateTime(new Date());
         discussPostService.insertDiscussPost(discussPost);
+
+        // 触发事件：将发布分帖子添加到es服务器上
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(user.getId())
+                .setEntityId(discussPost.getId())
+                .setEntityType(ENTITY_TYPE_POST);
+        // 将贴子发布到kafka服务器上
+        eventProducer.fireEvent(event);
+
         return CommunityUtil.getJSONString(0, "发布成功!");
     }
 
