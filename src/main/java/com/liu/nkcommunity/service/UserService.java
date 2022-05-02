@@ -24,4 +24,18 @@ public interface UserService {
     int updatePassword(int id, String password);
 
     User findByName(String name);
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

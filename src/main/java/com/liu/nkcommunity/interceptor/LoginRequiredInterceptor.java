@@ -12,7 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
 /**
- * 必须进行配置拦截器
+ * 设置拦截器
+ * 将设置好的拦截器再web中进行配置
  */
 @Component
 public class LoginRequiredInterceptor implements HandlerInterceptor {

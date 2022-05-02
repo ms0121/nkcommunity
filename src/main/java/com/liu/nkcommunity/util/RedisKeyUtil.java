@@ -17,6 +17,10 @@ public class RedisKeyUtil {
     private static final String PREFIX_TICKET = "ticket";
     // 存储用户信息的key
     private static final String PREFIX_USER = "user";
+    // uv：独立访客
+    private static final String PREFIX_UV = "uv";
+    // dau日活跃用户
+    private static final String PREFIX_DAU = "dau";
 
 
     /**
@@ -68,6 +72,26 @@ public class RedisKeyUtil {
     // 用户信息key
     public static String getUserKey(int userId) {
         return PREFIX_USER + SPLIT + userId;
+    }
+
+    // 指定日期的uv
+    public static String getUV(String date) {
+        return PREFIX_UV + SPLIT + date;
+    }
+
+    // 指定范围内的uv
+    public static String getUV(String startDate, String endDate) {
+        return PREFIX_UV + SPLIT + startDate + SPLIT + endDate;
+    }
+
+    // 指定日期的dau
+    public static String getDAU(String date) {
+        return PREFIX_DAU + SPLIT + date;
+    }
+
+    // 指定范围内的dau
+    public static String getDAU(String startDate, String endDate) {
+        return PREFIX_DAU + SPLIT + startDate + SPLIT + endDate;
     }
 
 }

@@ -54,15 +54,15 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     /**
      * 查询用户的接口十分的频繁，所以使用redis进行缓存用户的信息
      * 步骤：
-     *  - 1.需要查询用户信息的时候，优先从缓存中查询
-     *  - 2.缓存中可能没有用户信息，没有就从数据库中进行查询，并把查询得到的数据更新到redis中
-     *  - 3.如果修改了用户的相关信息，也就是用户的信息发生了变化，就直接从redis中将其进行删除（更新数据的方式可能会出现并发安全的问题）
+     * - 1.需要查询用户信息的时候，优先从缓存中查询
+     * - 2.缓存中可能没有用户信息，没有就从数据库中进行查询，并把查询得到的数据更新到redis中
+     * - 3.如果修改了用户的相关信息，也就是用户的信息发生了变化，就直接从redis中将其进行删除（更新数据的方式可能会出现并发安全的问题）
      */
     @Override
     public User selectById(int id) {
         // return userMapper.selectById(id);
         User user = getCache(id);
-        if (user == null){
+        if (user == null) {
             user = initCache(id);
         }
         return user;
@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     }
 
     // 2.取不到数据，先从数据库中获取，并初始化缓存中的用户信息
-    private User initCache(int userId){
+    private User initCache(int userId) {
         User user = userMapper.selectById(userId);
         // 构造用户的key
         String userKey = RedisKeyUtil.getUserKey(userId);
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     }
 
     // 3.用户数据发生变化的时候，清除缓存数据信息
-    public void clearCache(int userId){
+    public void clearCache(int userId) {
         // 构造用户的key
         String userKey = RedisKeyUtil.getUserKey(userId);
         redisTemplate.delete(userKey);
@@ -303,4 +303,30 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         return userMapper.selectByName(name);
     }
 
+//    /**
+//     * 查询用户的权限
+//     *
+//     * @param userId
+//     * @return
+//     */
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities(int userId) {
+//        User user = userMapper.selectById(userId);
+//        List<GrantedAuthority> list = new ArrayList<>();
+//        // 将用户的权限添加到列表中
+//        list.add(new GrantedAuthority() {
+//            @Override
+//            public String getAuthority() {
+//                switch (user.getType()) {
+//                    case 1:
+//                        return AUTHORITY_ADMIN;
+//                    case 2:
+//                        return AUTHORITY_MODERATOR;
+//                    default:
+//                        return AUTHORITY_USER;
+//                }
+//            }
+//        });
+//        return list;
+//    }
 }

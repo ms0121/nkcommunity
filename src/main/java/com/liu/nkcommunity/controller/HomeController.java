@@ -11,6 +11,7 @@ import com.liu.nkcommunity.util.CommunityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
@@ -72,6 +73,15 @@ public class HomeController implements CommunityConstant {
     @RequestMapping("/errorMsg")
     public String getErrorPage() {
         return "/error/500";
+    }
+
+    /**
+     * 无访问的权限功能跳转的页面
+     * @return
+     */
+    @GetMapping("/denied")
+    public String denied() {
+        return "/error/404";
     }
 
 

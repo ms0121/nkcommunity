@@ -108,7 +108,4 @@ public class EventConsumer implements CommunityConstant {
         elasticSearchService.save(discussPost);
     }
 
-
-
-
 }

@@ -30,6 +30,7 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
     /**
      * 请求执行前执行
      * 用于判断操作的用户是否已经登录
+     *
      * @param request
      * @param response
      * @param handler
@@ -49,6 +50,13 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
                 User user = userService.selectById(loginTicket.getUserId());
                 // 在本次请求中持有用户信息，只有当这次的请求结束之后，才会清掉该值
                 hostHolder.setUser(user);
+
+//                // 构建用户认证的结果,并存入SecurityContext,以便于Security进行授权.
+//                // principal: 主要信息; credentials: 证书; authorities: 权限;
+//                Authentication authentication = new UsernamePasswordAuthenticationToken(
+//                        user, user.getPassword(), userService.getAuthorities(user.getId()));
+//                // 将查询得到的认证信息存放在SecurityContextHolder中
+//                SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
             }
         }
         // 无论是否有登录，都直接放行请求，否则用户无法访问其他的页面
@@ -71,5 +79,7 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         // 当此请求执行完毕直接进行清除用户信息
         hostHolder.clear();
+        // 清除 SecurityContextHolder中的数据
+//        SecurityContextHolder.clearContext();
     }
 }

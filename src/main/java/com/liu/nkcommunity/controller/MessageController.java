@@ -85,9 +85,7 @@ public class MessageController implements CommunityConstant {
         // 查询当前用户所有的未读消息
         int letterUnreadCount = messageService.findLetterUnreadCount(user.getId(), null);
         model.addAttribute("letterUnreadCount", letterUnreadCount);
-        // 所有未读通知的数量
-        int noticeUnreadCount = messageService.findNoticeUnreadCount(user.getId(), null);
-        model.addAttribute("noticeUnreadCount", noticeUnreadCount);
+
         return "/site/letter";
     }
 
@@ -214,8 +212,8 @@ public class MessageController implements CommunityConstant {
         // 查询评论类通知
         // 最新的通知需要显示在页面中
         Message message = messageService.findLatestNotice(user.getId(), TOPIC_COMMENT);
-        Map<String, Object> messageVo = new HashMap<>();
         if (message != null) {
+            Map<String, Object> messageVo = new HashMap<>();
             messageVo.put("message", message);
             // 将转义字符进行反转
             String content = HtmlUtils.htmlUnescape(message.getContent());
@@ -238,8 +236,8 @@ public class MessageController implements CommunityConstant {
 
         // 查询点赞类通知
         message = messageService.findLatestNotice(user.getId(), TOPIC_LIKE);
-        messageVo = new HashMap<>();
         if (message != null) {
+            Map<String, Object> messageVo = new HashMap<>();
             messageVo.put("message", message);
             // 将转义字符进行反转
             String content = HtmlUtils.htmlUnescape(message.getContent());
@@ -262,8 +260,8 @@ public class MessageController implements CommunityConstant {
 
         // 查询关注类通知
         message = messageService.findLatestNotice(user.getId(), TOPIC_FOLLOW);
-        messageVo = new HashMap<>();
         if (message != null) {
+            Map<String, Object> messageVo = new HashMap<>();
             messageVo.put("message", message);
             // 将转义字符进行反转
             String content = HtmlUtils.htmlUnescape(message.getContent());

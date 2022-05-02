@@ -90,8 +90,8 @@
 							</h6>
 							<div>
 								<input type="hidden" id="entityId" th:value="${map.user.id}">
-								<button type="button" th:class="|btn ${map.hasFollowed?'btn-secondary':'btn-info'} btn-sm float-right follow-btn"
-										th:text="${map.hasFollowed?'已关注':'关注TA'}" th:if="${loginUser!=null && loginUser.id!=map.user.id}">关注TA</button>
+								<button type="button" th:class="|btn ${map.hasFollowed?'btn-secondary':'btn-info'} btn-sm float-right follow-btn|"
+										th:if="${loginUser!=null && loginUser.id!=map.user.id}" th:text="${map.hasFollowed?'已关注':'关注TA'}">关注TA</button>
 							</div>
 						</div>
 					</li>

@@ -235,6 +235,7 @@ public class LoginController implements CommunityConstant {
     @GetMapping("logout")
     public String logout(@CookieValue("ticket") String ticket) {
         userService.logout(ticket);
+//        SecurityContextHolder.clearContext();
         // 退出后重定向到登陆页面
         return "redirect:/index";
     }
