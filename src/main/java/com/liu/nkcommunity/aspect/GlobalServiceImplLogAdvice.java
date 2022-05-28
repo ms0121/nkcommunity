@@ -45,6 +45,5 @@ public class GlobalServiceImplLogAdvice {
         String target = typeName + "." + name;
         LOGGER.info(String.format("用户 [%s]，在[%s]，访问了[%s]", ip, now, target));
     }
-
 }
 

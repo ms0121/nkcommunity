@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
  * @author: lms
  * @date: 2022-04-28 22:51
  */
-@Configuration
+//@Configuration
 @Deprecated
 //public class SecurityConfig extends WebSecurityConfigurerAdapter implements CommunityConstant {
 public class SecurityConfig {

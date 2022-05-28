@@ -9,7 +9,9 @@ import com.liu.nkcommunity.service.UserService;
 import com.liu.nkcommunity.util.CommunityConstant;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
+import com.liu.nkcommunity.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,9 @@ public class DiscussPostController implements CommunityConstant {
 
     @Autowired
     private EventProducer eventProducer;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 发布新的帖子
@@ -68,6 +73,10 @@ public class DiscussPostController implements CommunityConstant {
                 .setEntityType(ENTITY_TYPE_POST);
         // 将贴子发布到kafka服务器上
         eventProducer.fireEvent(event);
+
+        // 发布新帖子的时候，计算它的最新得分
+        String postScoreKey = RedisKeyUtil.getPostScoreKey();
+        redisTemplate.opsForSet().add(postScoreKey,  discussPost.getId());
 
         return CommunityUtil.getJSONString(0, "发布成功!");
     }

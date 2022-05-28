@@ -8,7 +8,9 @@ import com.liu.nkcommunity.service.CommentService;
 import com.liu.nkcommunity.service.DiscussPostService;
 import com.liu.nkcommunity.util.CommunityConstant;
 import com.liu.nkcommunity.util.HostHolder;
+import com.liu.nkcommunity.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +33,9 @@ public class CommentController implements CommunityConstant {
 
     @Autowired
     private EventProducer eventProducer;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
 
     @PostMapping("add/{discussPostId}")
@@ -73,6 +78,9 @@ public class CommentController implements CommunityConstant {
                     .setEntityType(ENTITY_TYPE_POST);
             // 将贴子发布到kafka服务器上
             eventProducer.fireEvent(event);
+            // 对帖子进行评论的时候，也进行分数的计算
+            String postScoreKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(postScoreKey,  discussPostId);
         }
 
         // 跳转到帖子的详情页面

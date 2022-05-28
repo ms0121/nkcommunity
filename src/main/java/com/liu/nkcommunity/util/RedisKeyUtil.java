@@ -21,6 +21,8 @@ public class RedisKeyUtil {
     private static final String PREFIX_UV = "uv";
     // dau日活跃用户
     private static final String PREFIX_DAU = "dau";
+    // 记录帖子分数
+    private static final String PREFIX_POST = "post";
 
 
     /**
@@ -92,6 +94,11 @@ public class RedisKeyUtil {
     // 指定范围内的dau
     public static String getDAU(String startDate, String endDate) {
         return PREFIX_DAU + SPLIT + startDate + SPLIT + endDate;
+    }
+
+    // 记录分数变化的帖子
+    public static String getPostScoreKey() {
+        return PREFIX_POST + SPLIT + "post";
     }
 
 }

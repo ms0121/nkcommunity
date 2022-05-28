@@ -7,7 +7,9 @@ import com.liu.nkcommunity.service.LikeService;
 import com.liu.nkcommunity.util.CommunityConstant;
 import com.liu.nkcommunity.util.CommunityUtil;
 import com.liu.nkcommunity.util.HostHolder;
+import com.liu.nkcommunity.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,6 +27,9 @@ public class LikeController implements CommunityConstant {
 
     @Autowired
     private EventProducer eventProducer;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 点赞：某人给某个人的什么类型的帖子/评论点了赞
@@ -60,6 +65,11 @@ public class LikeController implements CommunityConstant {
             // 发送通知信息
             eventProducer.fireEvent(event);
         }
+        if (entityId == ENTITY_TYPE_POST) {
+            String postScoreKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(postScoreKey,  postId);
+        }
+
         // 取消点赞不通知
         return CommunityUtil.getJSONString(0, null, map);
     }

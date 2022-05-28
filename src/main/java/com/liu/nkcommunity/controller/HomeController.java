@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,13 +40,14 @@ public class HomeController implements CommunityConstant {
      * @return
      */
     @RequestMapping({"index", "/"})
-    public String getIndexPage(Model model, Page page) {
+    public String getIndexPage(Model model, Page page, @RequestParam(value = "orderMode", defaultValue = "0") int orderMode) {
         // 获取总记录数
         page.setRows(discussPostService.selectDiscussPostRows(0));
         // 设置访问路径
-        page.setPath("/index");
+        page.setPath("/index?orderMode=" + orderMode);
         // 查询所有的讨论贴
-        List<DiscussPost> discussPostList = discussPostService.selectDiscussPosts(0, page.getOffset(), page.getLimit());
+        List<DiscussPost> discussPostList =
+                discussPostService.selectDiscussPosts(0, page.getOffset(), page.getLimit(), orderMode);
         List<Map<String, Object>> discussPosts = new ArrayList<>();
         // 将讨论贴设置在请求域中
         if (discussPostList != null) {
@@ -62,6 +64,7 @@ public class HomeController implements CommunityConstant {
             }
         }
         model.addAttribute("discussPosts", discussPosts);
+        model.addAttribute("orderMode", orderMode);
         return "index";
     }
 
