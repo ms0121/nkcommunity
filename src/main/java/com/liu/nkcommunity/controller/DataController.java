@@ -63,11 +63,4 @@ public class DataController {
         return "forward:/data";
     }
 
-
-
-
-
-
-
-
 }
